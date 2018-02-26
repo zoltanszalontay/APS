@@ -1,4 +1,4 @@
-# v2
+# v3
 # -*- coding: utf-8 -*-
 import logging
 import urllib.request
@@ -64,11 +64,12 @@ class AzurePriceList:
             i = i + 1
         
         # Log header
-        # for i in range(len(self.machine)):
-        #     self.log.info("price[%d] = %s", i, self.machine[i])
+        self.log.info("Header:")
+        for i in range(len(self.machine)):
+            self.log.info("%d: \"%s\"", i, self.machine[i])
 
         # Scrape machine pricing information
-        while True:
+        #while True:
             # Drop 1st column
             row = soup.find(class_="sd-table").find_all('td')[1:]
             i = 0
@@ -76,16 +77,16 @@ class AzurePriceList:
                 self.machine.append(cell.text)
                 i = i + 1
             
-            if fail_condition:
-                break
+            #if fail_condition:
+            #    break
 
         # Add machine prices to pricelist 
         self.pricelist.append(self.machine)
 
         # Log pricelist
-        for i in range(len(self.pricelist)):
-            for j in range(len(self.pricelist[i])):
-                 self.log.info("machine[%d] = %s", i, self.pricelist[i][j])
+        # for i in range(len(self.pricelist)):
+        #    for j in range(len(self.pricelist[i])):
+        #         self.log.info("machine[%d] = %s", i, self.pricelist[i][j])
 
 
 #
