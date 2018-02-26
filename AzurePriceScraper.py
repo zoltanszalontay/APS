@@ -3,7 +3,7 @@
 import logging
 import urllib.request
 from bs4 import BeautifulSoup
-
+#test comment - szalonta
 class AzurePriceList:
     """Scrape the actual IaaS prices from the Azure Price list webpage"""
 
