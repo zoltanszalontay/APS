@@ -72,10 +72,8 @@ class AzurePriceList:
         #while True:
             # Drop 1st column
             row = soup.find(class_="sd-table").find_all('td')[1:]
-            i = 0
             for cell in row:
                 self.machine.append(cell.text)
-                i = i + 1
             
             #if fail_condition:
             #    break
