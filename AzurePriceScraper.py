@@ -1,4 +1,4 @@
-# v6
+# v7
 # -*- coding: utf-8 -*-
 import logging
 import urllib.request
