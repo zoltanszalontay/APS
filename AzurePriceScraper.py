@@ -1,4 +1,4 @@
-# v3
+# v4
 # -*- coding: utf-8 -*-
 import logging
 import urllib.request
@@ -58,10 +58,8 @@ class AzurePriceList:
         # Scrape pricing header row
         # Drop 1st column 
         row = soup.find(class_="sd-table").find_all('th')[1:]
-        i = 0
         for cell in row:
             self.machine.append(cell.text)
-            i = i + 1
         
         # Log header
         self.log.info("Header:")
