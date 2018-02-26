@@ -33,7 +33,8 @@ class AzurePriceList:
         "SQL Server Web":                                    "sql-server-web"
     }
 
-    price = []
+    machine = []
+    pricelist = []
 
     def __init__(self, product_name, log_lvl=logging.INFO):
         # Start logging
@@ -51,29 +52,41 @@ class AzurePriceList:
 
     def scrape(self):
         self.log.info("Scraping starts...")
-        # source = urllib.request.urlopen(self.url).read()
-        # soup = bs4.BeautifulSoup(source, 'lxml')
-        # self.log.info("Soup: %s", soup)
-
-        # Find main price table
-        # price_table = soup.find("table", {"class":"sd-table"})
-        # price_table = soup.find("table", {"class":"sd-table"}).tr.next_siblings
-        # for row in price_table:
-        #     if(type(cell) is not bs4.element.NavigableString:
-        #         cell = [i.text for i in row.find_all('td')]
-        #         print(cell)
         source = urllib.request.urlopen("https://azure.microsoft.com/en-us/pricing/details/virtual-machines/windows/").read()
         soup = BeautifulSoup(source, 'lxml')
         
+        # Scrape pricing header row
+        # Drop 1st column 
         row = soup.find(class_="sd-table").find_all('th')[1:]
         i = 0
         for cell in row:
-            self.log.info("cell[%d] = %s", i, cell.text)
-            self.price.append(cell.text)
+            self.machine.append(cell.text)
             i = i + 1
         
- #       for j in len(self.price):
- #           self.log.info("price[%d] = %s", j, self.price[j])
+        # Log header
+        # for i in range(len(self.machine)):
+        #     self.log.info("price[%d] = %s", i, self.machine[i])
+
+        # Scrape machine pricing information
+        while True:
+            # Drop 1st column
+            row = soup.find(class_="sd-table").find_all('td')[1:]
+            i = 0
+            for cell in row:
+                self.machine.append(cell.text)
+                i = i + 1
+            
+            if fail_condition:
+                break
+
+        # Add machine prices to pricelist 
+        self.pricelist.append(self.machine)
+
+        # Log pricelist
+        for i in range(len(self.pricelist)):
+            for j in range(len(self.pricelist[i])):
+                 self.log.info("machine[%d] = %s", i, self.pricelist[i][j])
+
 
 #
 # Main
