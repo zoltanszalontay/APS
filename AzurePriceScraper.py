@@ -95,8 +95,8 @@ class AzurePriceList:
                 i = i + 1
             # Scraping last 4 price columns
             self.log.info("Scraping %s price columns", self.machine[0])
-            prices = soup.b
-            self.log.info("Type: %s", prices)
+            prices = soup.find(class_="price-data")
+            self.log.info("Value: %s", prices)
  
             # Add machine prices to pricelist 
             self.pricelist.append(self.machine)
@@ -107,21 +107,18 @@ class AzurePriceList:
                 break
             
         # Log pricelist
-        self.log.info("Pricelist: %s", self.pricelist)
+        # self.log.info("Pricelist: %s", self.pricelist)
         # for i in range(len(self.pricelist)):
         #     for j in range(len(self.pricelist[i])):
         #         self.log.info("machine[%d] = %s", i, self.pricelist[i][j])
-
 ########
 #      #
 # Main #
 #      #
 ########
-
 # Start scraping, get prices
 apl = AzurePriceList("Windows Operating System", log_lvl=logging.INFO)
 apl.scrape()
-
 '''
 [   <td>B1S</td>, 
     <td>1</td>, 
