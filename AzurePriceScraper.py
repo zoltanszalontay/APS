@@ -3,6 +3,7 @@
 import logging
 import urllib.request
 from bs4 import BeautifulSoup
+import json
 
 class AzurePriceList:
     """Scrape the actual IaaS prices from the Azure Price list webpage"""
@@ -36,9 +37,9 @@ class AzurePriceList:
     machine = []
     pricelist = [[]]
     firstpricecolumn = 0
-    columns = 0
+    maxcolumns = 0
 
-    def __init__(self, product_name, log_lvl=logging.INFO):
+    def __init__(self, product_name, region, log_lvl=logging.INFO):
         # Start logging
         self.log = logging.getLogger(__name__)
         if log_lvl is None:
@@ -46,23 +47,22 @@ class AzurePriceList:
         self.log.setLevel(log_lvl)
         if len(self.log.handlers) == 0:
             self.log.addHandler(logging.StreamHandler())
+        
         self.log.info("Product name: %s", product_name)
+        self.region = region
 
         # URL = AzurePriceList base URL + product specific relative path
         self.url = AzurePriceList.BaseURL + AzurePriceList.product_url[product_name] + "/"
         self.log.info("URL: %s", self.url)
 
     def scrape(self):
-        self.log.info("Scraping starts...")
+        self.log.info("Scraping starts...\n===============================")
         source = urllib.request.urlopen("https://azure.microsoft.com/en-us/pricing/details/virtual-machines/windows/").read()
         soup = BeautifulSoup(source, 'lxml')
-        
-        #
+                #
         # HEADER ROW
-        #  
         # Drop 1st row
-        self.log.info("=====================================")
-        self.log.info("Pricelist: %s", self.pricelist)
+        # self.log.info("Pricelist: %s", self.pricelist)
         self.log.info("Scraping header")
         row = soup.find(class_="sd-table").find_all('th')[1:]
         i = 0
@@ -71,53 +71,58 @@ class AzurePriceList:
             if(cell.text == " Pay as you go "):
                 firstpricecolumn = i
             i = i + 1
-        columns = i
-        #self.log.info("Header: %s", self.machine)
+        maxcolumns = i
+        self.log.info("Columns: %d", maxcolumns)
+        # self.log.info("Header: %s", self.machine)
         self.pricelist.append(self.machine)
-        self.log.info("Pricelist: %s", self.pricelist)
-        #
+        # self.log.info("Pricelist: %s", self.pricelist)
+        
         # MACHINE PRICES
-        #
         # machine_idx starts with 1 because pricelist[[]] has an empty first list element!
         machine_idx = 1
+        row = soup.find(class_="sd-table").findAll("td")[1:]
+       # Drop 1st row
         while True:
             self.log.info("Scraping row #%d", machine_idx)
-            # Drop 1st row
-            row = soup.find(class_="sd-table").find_all('td')[1:]
-            # self.log.info("row: %s", row) 
+            # self.log.info("Row type: %s, Len: %d", type(row), len(row)) 
             i = 0
             self.machine = []
             # Scrape left columns
             for cell in row:
-                if(i == firstpricecolumn):
-                    break
-                self.machine.append(cell.text)
+                if(i >= firstpricecolumn):
+                    # Prices are coded as JSON in text cells
+                    jsonstr = cell.find(class_="price-data").attrs["data-amount"]
+                    # self.log.info("JSON: %s", jsonstr)
+                    data = json.loads(jsonstr)
+                    price = data["regional"][self.region]
+                    # self.log.info("Price = %s", price)
+                    self.machine.append(str(price))
+                else:
+                    self.machine.append(cell.text)
                 i = i + 1
-            # Scraping last 4 price columns
-            self.log.info("Scraping %s price columns", self.machine[0])
-            prices = soup.find(class_="price-data")
-            self.log.info("Value: %s", prices)
- 
+                if(i == maxcolumns):
+                    break
+            self.log.info("Machine: %s", self.machine)
             # Add machine prices to pricelist 
             self.pricelist.append(self.machine)
-            # self.log.info("Machine: %s", self.pricelist[machine_idx])
             machine_idx = machine_idx + 1
-            # Exit after first machine price row
-            if(machine_idx == 2):
+            # Process some machine types only
+            if(machine_idx == 3):
                 break
             
         # Log pricelist
         # self.log.info("Pricelist: %s", self.pricelist)
-        # for i in range(len(self.pricelist)):
-        #     for j in range(len(self.pricelist[i])):
-        #         self.log.info("machine[%d] = %s", i, self.pricelist[i][j])
+        #self.log.info("Pricelist:")
+        #for m in range(len(self.pricelist)):
+        #    self.log.info("machine[%d] = %s", m, self.pricelist[m])
+
 ########
 #      #
 # Main #
 #      #
 ########
 # Start scraping, get prices
-apl = AzurePriceList("Windows Operating System", log_lvl=logging.INFO)
+apl = AzurePriceList("Windows Operating System", "europe-west", log_lvl=logging.INFO)
 apl.scrape()
 '''
 [   <td>B1S</td>, 
